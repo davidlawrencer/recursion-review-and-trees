@@ -164,6 +164,9 @@ class BinaryTreeNode<T: Comparable> {
     var left: BinaryTreeNode?
     var right: BinaryTreeNode?
     
+    var isLeaf: Bool {
+        return left == nil && right == nil
+    }
     // nodes hold values
     var value: T //T is generic
     
@@ -180,7 +183,7 @@ class BinaryTreeNode<T: Comparable> {
          /  \
         2    3
        / \  / \
-      4  5  6  7
+      4  5  6
  */
 let root = BinaryTreeNode(1)
 let twoNode = BinaryTreeNode(2)
@@ -228,9 +231,63 @@ levelsInTree(from: root)
 // Because from any node there are at most two children in Binary Tree, there's a lot of "either-or"
 
 // Practice:
-// 1: Find the left-most node (leaf) in a tree
+// 1: Find the value of the left-most node (leaf) in a tree
+func leftMostValue(for root: BinaryTreeNode<Int>) -> Int {
+    // if let to see if there's a left side
+    // if there's a left, return function call on the left
+    // if there isn't, return the root
+    guard let left = root.left else { return root.value }
+    return leftMostValue(for: left)
+    // we don't have to worry about right at all
+}
+
+leftMostValue(for: root)
+
 // 2: Using DFS, find the largest value in a tree
-// 3: Swap all leaves (on their parent) in a tree
+func largestValueInTree(for root: BinaryTreeNode<Int>) -> Int {
+    // base cases are hard.
+    // agree.
+    // what do we want to look for in this function
+    // see if it has left or right to see what to compare it to
+    
+    // comparison is between the value on the node we see now, and the result of calling this recursively on the children of this node
+    // the value we can access as a property (root.value) is an Int, and the return of the recursive call is also an Int.
+    // return [root.value, largestValueInTree(for: root.left), largestValueInTree(for: root.right)].max()!
+    
+    // here are all the logical comparisons
+    // base case: if there's no left or right, dont compare to anything
+    // what if there's only one leaf?
+//    if let left = root.left {
+//        if let right = root.right { // optional binding
+//            return [root.value, largestValueInTree(for: left), largestValueInTree(for: right)].max()!
+//        } else { // if there's no right
+//            // compare the left's value to root's value
+//            return [root.value, largestValueInTree(for: left)].max()!
+//        }
+//    } else if let right = root.right {
+//        return [root.value, largestValueInTree(for: right)].max()!
+//    }
+//    return root.value
+    
+    // here we just look at the maxes we can find
+    guard !root.isLeaf else {return root.value}
+    var leftMax = Int() //0
+    var rightMax = Int() //0
+    
+    if let left = root.left {
+        leftMax = largestValueInTree(for: left)
+    }
+    
+    if let right = root.right {
+        rightMax = largestValueInTree(for: right)
+    }
+    
+    return [root.value, leftMax, rightMax].max()!
+}
+
+// 1: Refactor Kevin's recursive largestValueInTree to work for negative numbers
+// 2: Swap all leaves (on their parent) in a tree
+// 3: Insert a new node at the leaf on the smallest level. If all leaves are at the same level, insert that node at the left-most level
 
 
 
@@ -240,5 +297,3 @@ levelsInTree(from: root)
 
 
 // Thursday: BFS and DFS and preview some of the specific kinds of trees out there.
-
-
