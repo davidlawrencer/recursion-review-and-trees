@@ -1,6 +1,148 @@
 import UIKit
 
 var str = "Hello, playground"
+
+func saySeeYouSoonRecursively(thisMany times: Int) {
+    print("at this call, the value of times is \(times)")
+    guard times > 0 else { return }
+    print("See you all at 2pm for recursion!")
+    saySeeYouSoonRecursively(thisMany: times - 1)
+}
+saySeeYouSoonRecursively(thisMany: 3)
+
+// base case -> this is when to stop. if we don't hit the base case, infinite loop :(
+// calls itself -> explicitly use the function inside of itself
+
+// could also do it iteratively -> with a range, using a loop
+
+// we can make any iterative function recursive, but not necessarily the oppopsite (can have recursive functions dealing with a varying number of nested loops)
+func saySeeYouSoonIteratively(thisMany times: Int) {
+// will it always be greater than zero?
+    var num = times //times need to be mutable
+    while num > 0 {
+        print("See you all at 2pm for recursion!")
+        num -= 1
+    }
+}
+
+// sometimes with recursion, our function calls might seem out of order
+
+// For fibonacci -> the value of the next number in the sequence is the sum of the two values before it
+//           0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,
+// subscript 1,2,3,4,5,6,7,8 ,9 ,10,11,12
+
+func recursiveFib(term: Int) -> Int {
+    // base case(s)
+    // account for term being negative or zero
+    guard term > 1 else { return 0 }
+    guard term != 2 else { return 1 }
+    
+    // call ourselves (recurse) -> the numbers we need to set the base are there (our base cases)
+    // until the first recursive call resolves, i don't even begin the second recursive call ->
+    return recursiveFib(term: term - 1) + recursiveFib(term: term - 2)
+}
+
+// our pattern is call the function on the sum of the two prior terms, determined by the function.
+
+recursiveFib(term: 3) // what is that the same as calling recursively?
+// recursiveFib(term: 2)  + recursiveFib(term: 1)
+
+recursiveFib(term: 5) // what is that the same as calling recursively?
+// recursiveFib(term: 4) + recursiveFib(term: 3)
+// (recursiveFib(term: 3) + recursiveFib(term: 2))
+/*
+f(6)
+f(5) + f(4)
+(f(4)       +  f(3))  + (f(3) + f(2))
+((f(3) + 1) + (1) + (1 + 1)
+(1 + 0 + 1) + (1 + 0) + (1 + 0 + 1) = 5
+f(6) = 5
+ */
+// what are we doing a lot that we might not have iteratively -> made a lot of function calls. And a bunch were duplicative (f(3) is the same every time)
+
+// Memo: record something, make a note
+// Memoization: record the results of our function calls in recursion
+// ex: First time i look for the 4th term of my recursive Fibonacci solution, I might put in a dictionary dict[4] = 2 (keeping track of inputs as keys, and outputs as values). dict[3] = 1 (O(1) lookup)
+
+
+// Call stack: Order that functions are called.
+// It's a STACK -> look at top for next function to call.
+
+/*f(5)
+ f(4)               +   f(3)
+ f(3)        + f(2) +   f(2) + f(1)
+ f(2) + f(1) +   1  +    1   +  0
+ 1    +  0   +   1  +    1   +  0 = 3
+ */
+
+// functions: "print 6" keeps calling itself -> infinite loop
+func printSix() {
+    printSix()
+}
+/* first time i call the function (fn call a), the function call isn't done until anything happening inside of it is completed. when it goes and calls itself again (fn call b), a is not complete until b is complete. b is going to call the function yet again (fn call c) -> infinite loop
+when function is completed (literally, reaches the end of the block of code), it can be popped from the call stack
+ex: printSix() call stack never pops until it's empty
+
+f
+e
+d
+c
+b
+a
+ 
+ // any functions being called inside our function are pushed on top of the stack to be executed before ours.
+ 
+ 
+*/
+func addThenDivide(addOne: Int, addTwo: Int, divisor: Int) -> Int {
+    let sum = addOne + addTwo
+    return sum / divisor
+}
+// every time we call addThenDivide -> +, /, addThenDivide
+/*
+initially:
+addThenDivide
+
+then, when we try to add (we pushed + operation):
++
+addThenDivide
+ 
+then when addition is complete:
+addThenDivide
+ 
+to divide we push /:
+/
+addThenDivide
+ 
+we finish dividing:
+addThenDivide
+ 
+we finish addThenDivide
+[]
+ */
+
+//Our recursive calls look like a tree, but they dont occur in that way.
+
+/*             f(5)
+         f(4)   +    f(3)
+f(3)   + f(2) +    f(2) + f(1)
+f(2) + f(1) +   1  +    1   +  0
+1    +  0   +   1  +    1   +  0 = 3
+*/
+/*
+ f(2)
+ f(1)
+ f(3)
+ f(2)
+ f(4)
+ f(2)
+ f(1)
+ f(3)
+ f(5) 2 (from the left) + 1 (from the right)
+ */
+
+
+
 /*
  Write a function called range which takes in two numbers (num1, num2) as arguments. The function should return an array of numbers between num1 and num2.
 
