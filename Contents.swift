@@ -3,9 +3,9 @@ import UIKit
 var str = "Hello, playground"
 
 func saySeeYouSoonRecursively(thisMany times: Int) {
-    print("at this call, the value of times is \(times)")
+//    print("at this call, the value of times is \(times)")
     guard times > 0 else { return }
-    print("See you all at 2pm for recursion!")
+//    print("See you all at 2pm for recursion!")
     saySeeYouSoonRecursively(thisMany: times - 1)
 }
 saySeeYouSoonRecursively(thisMany: 3)
@@ -20,7 +20,7 @@ func saySeeYouSoonIteratively(thisMany times: Int) {
 // will it always be greater than zero?
     var num = times //times need to be mutable
     while num > 0 {
-        print("See you all at 2pm for recursion!")
+//        print("See you all at 2pm for recursion!")
         num -= 1
     }
 }
@@ -77,7 +77,7 @@ f(6) = 5
 
 // functions: "print 6" keeps calling itself -> infinite loop
 func printSix() {
-    printSix()
+//    printSix()
 }
 /* first time i call the function (fn call a), the function call isn't done until anything happening inside of it is completed. when it goes and calls itself again (fn call b), a is not complete until b is complete. b is going to call the function yet again (fn call c) -> infinite loop
 when function is completed (literally, reaches the end of the block of code), it can be popped from the call stack
@@ -264,7 +264,46 @@ Math().fibonacci(term: 12)
 
 
 
-
+class LLNode<T: Equatable>: Equatable {
+  public var value: T
+  public var next: LLNode?
+  init(value: T) {
+    self.value = value
+  }
+  static func ==(lhs: LLNode, rhs: LLNode) -> Bool {
+    return lhs.value == rhs.value &&
+      lhs.next == rhs.next
+  }
+}
+struct Queue<T: Equatable> {
+  private var head: LLNode<T>? // could be nil
+  private var tail: LLNode<T>? // could be nil
+  public var isEmpty: Bool {
+    return head == nil
+  }
+  public var peek: T? {
+    return head?.value
+  }
+  public mutating func enqueue(_ value: T) {
+    let newNode = LLNode(value: value)
+    guard let lastNode = tail else {
+      head = newNode
+      tail = newNode
+      return
+    }
+    lastNode.next = newNode
+    tail = newNode
+  }
+  @discardableResult
+  public mutating func dequeue() -> T? {
+    var valueRemoved: T?
+    guard !isEmpty else { return valueRemoved }
+    valueRemoved = head?.value
+    if head == tail { tail = nil }
+    head = head?.next
+    return valueRemoved
+  }
+}
 
 
 
@@ -300,23 +339,7 @@ a -> b -> c -> d -> e
 
 // A huge goal of ours for using trees is that we want to be able to move things around based on >, <, >=, <=, and ==
 // I want our stored values to be comparable. Gotta make the generic type here conform to comparable
-class BinaryTreeNode<T: Comparable> {
-    // for the children, we point to nodes
-    // should these be optional? at some point they could be nil. don't have to initialize them with values!
-    var left: BinaryTreeNode?
-    var right: BinaryTreeNode?
-    
-    var isLeaf: Bool {
-        return left == nil && right == nil
-    }
-    // nodes hold values
-    var value: T //T is generic
-    
-    // classes need to be inited
-    init(_ value: T) {
-        self.value = value
-    }
-}
+
 
 /*
  // top of tree is root -> no parents
@@ -325,7 +348,7 @@ class BinaryTreeNode<T: Comparable> {
          /  \
         2    3
        / \  / \
-      4  5  6
+      4  5  6  7
  */
 let root = BinaryTreeNode(1)
 let twoNode = BinaryTreeNode(2)
@@ -427,15 +450,135 @@ func largestValueInTree(for root: BinaryTreeNode<Int>) -> Int {
     return [root.value, leftMax, rightMax].max()!
 }
 
-// 1: Refactor Kevin's recursive largestValueInTree to work for negative numbers
 // 2: Swap all leaves (on their parent) in a tree
-// 3: Insert a new node at the leaf on the smallest level. If all leaves are at the same level, insert that node at the left-most level
+
+class BinaryTreeNode<T: Comparable>: Comparable {
+    // NodeWithValueSeven < NodeWithValueEight
+    static func < (lhs: BinaryTreeNode<T>, rhs: BinaryTreeNode<T>) -> Bool {
+        lhs.value < rhs.value
+    }
+    
+    static func == (lhs: BinaryTreeNode<T>, rhs: BinaryTreeNode<T>) -> Bool {
+        lhs.value == rhs.value
+    }
+    
+    var left: BinaryTreeNode?
+    var right: BinaryTreeNode?
+    var value: T
+    
+    var isLeaf:Bool {
+        return left == nil && right == nil
+    }
+    
+    init(_ value: T) {
+        self.value = value
+    }
+    
+    func swapLeaves() {
+        // to store the changes, we can just change self.
+        // what's weird about using recursion? it doesn't return anything
+        // can also use recursion until we reach a base case, then say to stop.
+        // guard thisThingIsCorrect else {return} -> allowed by Void return type
+        // base case? calling this on a leaf
+        guard !isLeaf else {return}
+        
+        // base case? both children are leaves
+        // what is this evaluating -> seeing if those values exist
+        // if self.left?.isLeaf != nil && self.right?.isLeaf != nil {
+        
+        // one way to do this
+        // if let leftLeafiness = self.left?.isLeaf, leftLeafiness == true, let rightLeafiness = self.right?.isLeaf, rightLeafiness == true {
+        // if there is Optional.some (aka, there's a value), we can do a direct comparison
+        
+        // Code preference: if we don't need to optional bind, we should not. the values will be the same, and they'll be unwrapped, but it takes up memory. we should use optional binding if we need that value in the scope
+        if left?.isLeaf == true && right?.isLeaf == true {
+            // does this work? no... lose the value of left
+//            left = right
+//            right = left
+            
+            // using a temporary variable -> only need to store the first value that's going to be replaced
+            swapNodes()
+            return
+        }
+        
+        if left != nil {
+            left!.swapLeaves()
+        }
+        
+        if right != nil {
+            right!.swapLeaves()
+        }
+    }
+    
+    private func swapNodes() {
+        let temp = right
+        right = left
+        left = temp
+    }
+}
+
+/* What we gonna do?
+ Tia/Liana: we'll want to see if we are at leaves (base case) -> cant swap if they're not leaves, so we'll need to check the lowest possible level. doy, david. might run into issue where all children get swapped, rather than just the leaves
+ Sam/Kevin: go to the node before the leaves and check node.left/node.right, swap those. if left is not a leaf, recursively call it on left. if right is not a leaf, recursively call it. base case is if the children of this node are both leaves
+ 
+ /*
+ // top of tree is root -> no parents
+         root
+          1
+         /  \
+        2    3
+       / \  / \
+      4  5  6  7
+ */
+
+ 
+ How are we storing and returning?
+ Not returning, because we're just mutating a tree
+ Doesn't need mutating -> implemented as a class (left and right refer to items of the same kind
+ 
+ 
+ 
+*/
 
 
+// L8R: BFS -> instead of going depth-wise, it hits each node at each level before going to the next level. More iterative. It's going to use a queue to do stuff
 
 
+//Queue to queue up binary tree nodes
 
+// why doesnt T work here? Needs to know its type when declared. We can't use generics as Any in the global scope. Generics go in our definitions.
 
+extension BinaryTreeNode {
+    func breadthFirstSearch(_ value:T) {
+        var queue = Queue<BinaryTreeNode<T>>()
+        // would be better-suited to be in a Tree class, rather than a TreeNode class, because it's working on the entire structure. where we use self in this, we could use root in a Tree class
+        
+        // we'll look at the node, and then we'll queue up its children. "Iterative" search
+        // hint: iterate until the queue is empty (queue.isEmpty)
+        // we'll start at the current node, and then we'll look left, then we'll look right, then we'll remove our current node
+        queue.enqueue(self)
 
+        while !queue.isEmpty {
+          // we'll dequeue
+          let currentNode = queue.dequeue()!
 
-// Thursday: BFS and DFS and preview some of the specific kinds of trees out there.
+          // check if we've found what we're looking for
+          // if so, print yay
+          if currentNode.value == value {
+            print("yay")
+            return
+          }
+          
+          // if not, we enqueue a node's children.
+          if currentNode.left != nil {
+            queue.enqueue(currentNode.left!)
+            //dequeue, look at next thing
+          }
+
+          if currentNode.right != nil {
+            queue.enqueue(currentNode.right!)
+          }
+        }
+        print("nay")
+    }
+}
